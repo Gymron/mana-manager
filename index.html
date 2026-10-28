@@ -1,0 +1,1217 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0b1024">
+<title>Mana Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Pixelify+Sans:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --night: #0b1024;
+  --night-2: #05060f;
+  --panel: #121a36;
+  --panel-2: #18224a;
+  --line: #27315f;
+  --grid: #222b52;
+  --ink: #e9edff;
+  --ink-2: #b1b9dd;
+  --ink-3: #8089b3;
+  --mana: #6fe3ff;
+  --gold: #ffc83a;
+  --team: #4aa8ff;
+  --loot: #3ad07a;
+  --flip: #2ec4b6;
+  --boss: #ff7a5a;
+  --legend: #e03cff;
+  --legend-2: #ff2e63;
+  --good: #5ae86a;
+  --bad: #ff6b6b;
+  --cubit: #4fe0ff;
+  --radius: 10px;
+  --pixel: "Pixelify Sans", "Atkinson Hyperlegible", system-ui, sans-serif;
+  --text: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+html { background: var(--night-2); }
+body {
+  margin: 0;
+  min-height: 100vh;
+  font: 16px/1.5 var(--text);
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 500px at 15% -10%, rgba(138, 90, 255, 0.16), transparent 60%),
+    radial-gradient(900px 400px at 100% 0%, rgba(111, 227, 255, 0.08), transparent 60%),
+    linear-gradient(180deg, #101538 0%, var(--night) 40%, var(--night-2) 100%);
+  background-attachment: fixed;
+}
+button, input, select { font: inherit; color: inherit; }
+a { color: var(--mana); }
+:focus-visible { outline: 2px solid var(--mana); outline-offset: 2px; border-radius: 6px; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+
+/* Kopf */
+.top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 18px 0 10px; }
+.brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+.brand h1 { font: 700 26px/1 var(--pixel); margin: 0; letter-spacing: 0.5px; }
+.brand h1 span { color: var(--mana); }
+.crystal { width: 26px; height: 30px; image-rendering: pixelated; filter: drop-shadow(0 0 8px rgba(111, 227, 255, 0.45)); }
+.meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: var(--ink-2); font-size: 14px; }
+.meta .island { color: var(--ink); font-weight: 700; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: var(--good); margin-right: 6px; }
+.dot.stale { background: var(--gold); }
+.dot.off { background: var(--bad); }
+.btn {
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer;
+  color: var(--ink); font-size: 14px;
+}
+.btn:hover { border-color: var(--mana); }
+.btn.primary { background: #1b3a5a; border-color: var(--mana); }
+.btn.quiet { background: transparent; }
+
+/* Reiter */
+.tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--line); margin-bottom: 18px; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 14px 9px; cursor: pointer;
+  color: var(--ink-2); white-space: nowrap; font-size: 15px;
+}
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent, var(--mana)); font-weight: 700; }
+@media (max-width: 480px) {
+  .tabs { justify-content: space-between; gap: 0; }
+  .tab { padding: 10px 4px 9px; font-size: 14px; }
+  .list .amt .lbl { display: none; }
+  .list li { grid-template-columns: 48px 1fr auto; }
+}
+
+/* Bausteine */
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+.chips { display: inline-flex; flex-wrap: wrap; gap: 4px; background: rgba(18, 26, 54, 0.7); border: 1px solid var(--line); border-radius: 9px; padding: 3px; }
+.chip { border: 0; background: none; padding: 5px 11px; border-radius: 6px; cursor: pointer; color: var(--ink-2); font-size: 14px; }
+.chip:hover { color: var(--ink); }
+.chip[aria-pressed="true"] { background: var(--panel-2); color: var(--ink); box-shadow: inset 0 -2px 0 var(--accent, var(--mana)); }
+.panel { background: rgba(18, 26, 54, 0.78); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
+.panel > h2, .section-title { font: 600 18px/1.2 var(--pixel); margin: 0 0 12px; letter-spacing: 0.3px; }
+.panel.accent { border-top: 3px solid var(--accent); }
+.muted { color: var(--ink-3); }
+.small { font-size: 13px; }
+.grid { display: grid; gap: 12px; }
+.grid.tiles { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.grid.two { grid-template-columns: 1.35fr 1fr; }
+@media (max-width: 760px) { .grid.two { grid-template-columns: 1fr; } }
+.tile { background: rgba(10, 14, 32, 0.55); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.tile .label { color: var(--ink-2); font-size: 13px; display: flex; align-items: center; gap: 6px; }
+.tile .value { font-size: 22px; font-weight: 700; margin-top: 2px; }
+.tile .sub { color: var(--ink-3); font-size: 13px; }
+.sym { display: inline-block; width: 1.1em; text-align: center; }
+.pos { color: var(--good); }
+.neg { color: var(--bad); }
+.num { font-variant-numeric: tabular-nums; }
+.legendary { color: #ff8ad8; }
+
+/* Held: Einnahmen pro Stunde */
+.hero { display: grid; grid-template-columns: auto 1fr; gap: 6px 22px; align-items: end; }
+.hero .big { font: 700 clamp(40px, 9vw, 68px)/0.95 var(--pixel); color: var(--gold); text-shadow: 0 0 22px rgba(255, 200, 58, 0.25); }
+.hero .big small { font-size: 0.42em; color: var(--ink-2); text-shadow: none; margin-left: 4px; }
+.hero .what { color: var(--ink-2); grid-column: 1 / -1; order: -1; }
+.hero .side { display: flex; gap: 18px; flex-wrap: wrap; padding-bottom: 6px; }
+.hero .side div { color: var(--ink-2); font-size: 14px; }
+.hero .side b { display: block; color: var(--ink); font-size: 18px; }
+@media (max-width: 560px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero .side { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; }
+}
+.warn { background: rgba(255, 200, 58, 0.08); border: 1px solid rgba(255, 200, 58, 0.35); color: #ffe3a1; border-radius: 8px; padding: 8px 12px; margin-top: 12px; font-size: 14px; }
+.error { background: rgba(255, 107, 107, 0.08); border: 1px solid rgba(255, 107, 107, 0.4); color: #ffc4c4; border-radius: 8px; padding: 10px 12px; margin-top: 12px; }
+
+/* Diagramme */
+.chart { position: relative; width: 100%; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart .axis { fill: var(--ink-3); font: 11px var(--text); }
+.chart .gridline { stroke: var(--grid); stroke-width: 1; }
+.chart .baseline { stroke: #3a4577; stroke-width: 1; }
+.legend-line { display: flex; gap: 14px; flex-wrap: wrap; color: var(--ink-2); font-size: 13px; margin-top: 8px; }
+.legend-line i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+#tip {
+  position: fixed; z-index: 20; pointer-events: none; background: #0a0f24; border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 10px; font-size: 13px; color: var(--ink-2); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); max-width: 260px; display: none;
+}
+#tip b { color: var(--ink); font-size: 15px; display: block; }
+
+/* Tabellen */
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; color: var(--ink-2); font-weight: 400; font-size: 13px; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 8px; border-bottom: 1px solid rgba(39, 49, 95, 0.55); vertical-align: middle; }
+th.r, td.r { text-align: right; }
+tr.click { cursor: pointer; }
+tr.click:hover td { background: rgba(74, 168, 255, 0.06); }
+tr.sel td { background: rgba(74, 168, 255, 0.12); }
+.who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.who b { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.head { width: 28px; height: 28px; border-radius: 4px; image-rendering: pixelated; background: var(--panel-2); flex: none; display: inline-grid; place-items: center; font: 700 14px var(--pixel); color: var(--ink-2); }
+.head.sm { width: 18px; height: 18px; font-size: 10px; border-radius: 3px; }
+.bar { height: 4px; background: #5a2a2a; border-radius: 2px; overflow: hidden; margin-top: 3px; }
+.bar > span { display: block; height: 100%; background: var(--good); }
+@media (max-width: 640px) {
+  table.cards thead { display: none; }
+  table.cards tr { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px 10px; padding: 10px 4px; border-bottom: 1px solid var(--line); }
+  table.cards td { border: 0; padding: 2px 4px; text-align: left !important; }
+  table.cards td:first-child { grid-column: 1 / -1; padding-bottom: 6px; }
+  table.cards td[data-label]::before { content: attr(data-label); display: block; color: var(--ink-3); font-size: 12px; }
+}
+
+/* Karten mit Rekorden */
+.records { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.record { background: rgba(10, 14, 32, 0.55); border: 1px solid var(--line); border-top: 2px solid var(--accent); border-radius: 8px; padding: 10px 12px; }
+.record .t { color: var(--ink-2); font-size: 13px; }
+.record .v { font-weight: 700; margin-top: 2px; }
+.record .s { color: var(--ink-3); font-size: 13px; }
+
+/* Listen */
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { display: grid; grid-template-columns: 58px 1fr auto; gap: 10px; padding: 8px 4px; border-bottom: 1px solid rgba(39, 49, 95, 0.55); align-items: center; }
+.list li.leg { background: linear-gradient(90deg, rgba(255, 46, 99, 0.14), rgba(224, 60, 255, 0.10)); border-radius: 6px; }
+.list .time { color: var(--ink-2); font-size: 13px; font-variant-numeric: tabular-nums; line-height: 1.3; }
+.list .time small { display: block; color: var(--ink-3); font-size: 12px; }
+.list .main { min-width: 0; }
+.list .main b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list .main > span { color: var(--ink-3); font-size: 13px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list .amt { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.day { font: 600 15px var(--pixel); color: var(--ink-2); margin: 16px 0 4px; }
+.kind { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 5px; font-size: 12px; margin-right: 6px; vertical-align: -4px; background: var(--panel-2); }
+input[type="search"], input[type="text"], select {
+  background: rgba(10, 14, 32, 0.8); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; min-width: 0;
+}
+
+/* Code-Eingabe */
+.gate { max-width: 560px; margin: 8vh auto 0; }
+.gate h2 { font: 700 22px var(--pixel); margin: 0 0 8px; }
+.gate p { color: var(--ink-2); margin: 0 0 12px; }
+.gate textarea {
+  width: 100%; min-height: 84px; resize: vertical; background: rgba(10, 14, 32, 0.85); border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px; color: var(--ink); font: 14px/1.4 ui-monospace, Consolas, monospace; word-break: break-all;
+}
+.gate label { display: flex; gap: 8px; align-items: center; color: var(--ink-2); font-size: 14px; margin: 10px 0 14px; }
+.progress { color: var(--ink-2); font-size: 14px; }
+footer { color: var(--ink-3); font-size: 13px; padding: 24px 0 40px; display: flex; gap: 12px; flex-wrap: wrap; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg class="crystal" viewBox="0 0 9 10" aria-hidden="true">
+        <path fill="#ffffff" d="M4 0h1v1H4zM3 1h1v1H3zM2 2h1v1H2zM1 3h1v1H1zM0 4h1v1H0z"/>
+        <path fill="#9af4ff" d="M4 1h1v1H4zM3 2h2v1H3zM2 3h3v1H2zM1 4h4v1H1zM0 5h4v1H0zM1 6h3v1H1zM2 7h2v1H2zM3 8h1v1H3z"/>
+        <path fill="#3ac8ff" d="M5 1h1v1H5zM5 2h2v1H5zM5 3h3v1H5zM5 4h3v1H5zM4 5h4v1H4zM4 6h3v1H4zM4 7h2v1H4zM4 8h1v1H4z"/>
+        <path fill="#7a4ae0" d="M8 4h1v2H8zM7 6h1v1H7zM6 7h1v1H6zM5 8h1v1H5zM4 9h1v1H4z"/>
+      </svg>
+      <h1>Mana <span>Manager</span></h1>
+    </div>
+    <div class="meta" id="meta" hidden>
+      <span><span class="dot" id="state-dot"></span><span class="island" id="island"></span></span>
+      <span id="updated"></span>
+      <button class="btn" id="reload" type="button">Aktualisieren</button>
+    </div>
+  </header>
+
+  <section class="gate panel" id="gate" hidden>
+    <h2>Team-Statistiken öffnen</h2>
+    <p>Füge euren Freigabe-Code ein. Es ist derselbe, mit dem ihr im Spiel mitlest (<code>/infsync join …</code>; beim Teilen-Account zeigt <code>/infsync code</code> ihn an).</p>
+    <form id="gate-form">
+      <textarea id="gate-code" spellcheck="false" autocomplete="off" placeholder="IT2.…" aria-label="Freigabe-Code"></textarea>
+      <label><input type="checkbox" id="gate-remember" checked> Auf diesem Gerät merken</label>
+      <button class="btn primary" type="submit">Öffnen</button>
+    </form>
+    <div class="error" id="gate-error" hidden></div>
+    <p class="small muted" style="margin-top:14px">Der Code bleibt auf diesem Gerät. Die Daten werden verschlüsselt von GitHub geladen und erst hier im Browser entschlüsselt.</p>
+  </section>
+
+  <div id="app" hidden>
+    <nav class="tabs" role="tablist" id="tabs"></nav>
+    <div class="progress" id="progress" hidden></div>
+    <div class="error" id="load-error" hidden></div>
+    <main id="view"></main>
+    <footer>
+      <span id="foot-note"></span>
+      <button class="btn quiet" type="button" id="copy-link">Link mit Code kopieren</button>
+      <button class="btn quiet" type="button" id="forget">Code auf diesem Gerät vergessen</button>
+    </footer>
+  </div>
+</div>
+<div id="tip" role="tooltip"></div>
+
+<script>
+'use strict';
+
+// ============================================================ Grundlagen
+
+const RAW_DEFAULT = 'https://gist.githubusercontent.com';
+const params = new URLSearchParams(location.search);
+const LOCAL = location.protocol === 'file:' || ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+// Nur lokal (Test) darf eine andere Datenquelle angegeben werden
+const RAW = LOCAL && params.get('raw') ? params.get('raw').replace(/\/+$/, '') : RAW_DEFAULT;
+const DAY = 86400000;
+const HOUR = 3600000;
+const KIND = {
+  B: { label: 'Boss-Loot', short: 'Boss', sym: '☠', color: 'var(--boss)' },
+  L: { label: 'Legendär', short: 'Legendär', sym: '♛', color: 'var(--legend)' },
+  D: { label: 'Seltener Drop', short: 'Drops', sym: '★', color: 'var(--gold)' },
+  G: { label: 'Verlosung', short: 'Verlosungen', sym: '✦', color: '#d8a0ff' },
+  A: { label: 'Auktion', short: 'Auktionen', sym: '$', color: 'var(--loot)' },
+};
+
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } },
+  del(k) { try { localStorage.removeItem(k); } catch (e) { /* egal */ } },
+};
+
+/** Element bauen; Texte immer als Textknoten (Namen und Items kommen aus fremden Daten). */
+function h(tag, props, ...kids) {
+  const e = document.createElement(tag);
+  if (props) {
+    for (const [k, v] of Object.entries(props)) {
+      if (v == null || v === false) continue;
+      if (k === 'class') e.className = v;
+      else if (k === 'text') e.textContent = v;
+      else if (k === 'style') e.style.cssText = v;
+      else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+      else e.setAttribute(k, v === true ? '' : v);
+    }
+  }
+  for (const kid of kids.flat()) {
+    if (kid == null || kid === false) continue;
+    e.append(kid instanceof Node ? kid : String(kid));
+  }
+  return e;
+}
+const svgNS = 'http://www.w3.org/2000/svg';
+function s(tag, attrs, ...kids) {
+  const e = document.createElementNS(svgNS, tag);
+  for (const [k, v] of Object.entries(attrs || {})) if (v != null) e.setAttribute(k, v);
+  for (const kid of kids.flat()) if (kid != null) e.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+  return e;
+}
+
+// ============================================================ Zahlen und Zeiten
+
+const nf0 = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 0 });
+function nf(v, d) { return new Intl.NumberFormat('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d }).format(v); }
+function compact(v) {
+  const a = Math.abs(v);
+  const sign = v < 0 ? '−' : '';
+  if (a >= 1e12) return sign + nf(a / 1e12, 2) + ' Bio';
+  if (a >= 1e9) return sign + nf(a / 1e9, 2) + ' Mrd';
+  if (a >= 1e7) return sign + nf(a / 1e6, 1) + ' Mio';
+  if (a >= 1e6) return sign + nf(a / 1e6, 2) + ' Mio';
+  if (a >= 1e5) return sign + nf0.format(a / 1e3) + ' Tsd';
+  if (a >= 1e4) return sign + nf(a / 1e3, 1) + ' Tsd';
+  return sign + nf0.format(a);
+}
+function axisNum(v) { return compact(v).replace(/,0+(?= |$)/, ''); }
+function money(v) { return compact(v) + ' $'; }
+function cubitNum(v) {
+  const a = Math.abs(v);
+  return new Intl.NumberFormat('de-DE', { maximumFractionDigits: a >= 100 ? 0 : 2 }).format(a);
+}
+function cubits(v) { const t = cubitNum(v); return (v < 0 ? '−' : '') + t + (t === '1' ? ' Cubit' : ' Cubits'); }
+function amount(v, cur) { return cur === 'c' ? cubits(v) : money(v); }
+/** "+1.000 $" grün, "−500 $" rot, "±0" grau – das Vorzeichen trägt die Bedeutung, nicht nur die Farbe */
+function signedEl(v, cur, tag = 'span') {
+  const eps = cur === 'c' ? 0.005 : 0.5;
+  if (Math.abs(v) < eps) return h(tag, { class: 'muted' }, '±0' + (cur === 'c' ? ' Cubits' : ' $'));
+  const txt = cur === 'c' ? cubitNum(v) + (cubitNum(v) === '1' ? ' Cubit' : ' Cubits') : compact(Math.abs(v)) + ' $';
+  return h(tag, { class: v > 0 ? 'pos' : 'neg' }, (v > 0 ? '+' : '−') + txt);
+}
+const pad = (n) => String(n).padStart(2, '0');
+function clock(t) { const d = new Date(t); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+function dateShort(t) { const d = new Date(t); return pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + '.'; }
+function dayStart(t) { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); }
+function dayName(t) {
+  const today = dayStart(Date.now());
+  const d = dayStart(t);
+  if (d === today) return 'Heute';
+  if (d === today - DAY) return 'Gestern';
+  return new Date(t).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+function ago(ms) {
+  if (ms < 60000) return 'gerade eben';
+  const m = Math.floor(ms / 60000);
+  if (m < 60) return 'vor ' + m + ' Min';
+  const hrs = Math.floor(m / 60);
+  if (hrs < 24) return 'vor ' + hrs + ' h';
+  const d = Math.floor(hrs / 24);
+  return d === 1 ? 'vor 1 Tag' : 'vor ' + d + ' Tagen';
+}
+function since(range) {
+  const now = Date.now();
+  switch (range) {
+    case 'today': return dayStart(now);
+    case '24h': return now - DAY;
+    case '7d': return now - 7 * DAY;
+    case '30d': return now - 30 * DAY;
+    default: return 0;
+  }
+}
+const RANGES = [['today', 'Heute'], ['7d', '7 Tage'], ['30d', '30 Tage'], ['all', 'Gesamt']];
+
+// ============================================================ Code und Entschlüsselung
+
+function b64urlToBytes(str) {
+  let t = str.replace(/-/g, '+').replace(/_/g, '/');
+  while (t.length % 4) t += '=';
+  const bin = atob(t);
+  return Uint8Array.from(bin, (c) => c.charCodeAt(0));
+}
+/** "IT2.…" → {gistId, key, owner, island} (gleiches Format wie SyncCodec.encodeCode in der Mod) */
+function parseCode(code) {
+  const c = (code || '').trim();
+  if (!c.startsWith('IT2.')) throw new Error('Der Code muss mit „IT2.“ beginnen.');
+  let b;
+  try { b = b64urlToBytes(c.slice(4)); } catch (e) { throw new Error('Der Code ist beschädigt – wurde er vollständig kopiert?'); }
+  let i = 0;
+  const td = new TextDecoder();
+  const read = () => { const n = b[i++]; const v = td.decode(b.slice(i, i + n)); i += n; return v; };
+  if (b[i++] !== 1) throw new Error('Der Code ist beschädigt – wurde er vollständig kopiert?');
+  const gistId = read();
+  const key = b.slice(i, i + 32);
+  i += 32;
+  const owner = read();
+  const island = read();
+  if (!/^[A-Za-z0-9]{1,64}$/.test(gistId) || !/^[A-Za-z0-9-]{1,39}$/.test(owner) || key.length !== 32 || i > b.length) {
+    throw new Error('Der Code ist beschädigt – wurde er vollständig kopiert?');
+  }
+  return { gistId, key, owner, island };
+}
+
+class LoadError extends Error {
+  constructor(msg, status) { super(msg); this.status = status; }
+}
+
+const S = {
+  codeStr: null, code: null, key: null, idx: null, data: null, loadedAt: 0, loading: false,
+  tab: store.get('mm-tab') || 'overview',
+  incRange: '24h', teamRange: '7d', flipRange: '7d', flipCur: '$',
+  lootKind: 'all', lootPlayer: '', lootQuery: '', lootLimit: 150,
+  teamSel: null, flipSel: null, incTable: false,
+  cache: { months: {}, team: {} },
+};
+
+async function decrypt(name, text) {
+  let bytes;
+  try {
+    const bin = atob(text.trim());
+    bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+  } catch (e) {
+    throw new LoadError('Die Datei ' + name + ' ist keine verschlüsselte Mana-Manager-Datei.');
+  }
+  if (bytes.length < 28) throw new LoadError('Die Datei ' + name + ' ist zu kurz.');
+  let plain;
+  try {
+    plain = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: bytes.slice(0, 12), additionalData: new TextEncoder().encode(name), tagLength: 128 },
+      S.key, bytes.slice(12));
+  } catch (e) {
+    throw new LoadError('Der Code passt nicht zu den Daten. Vielleicht wurde er mit /infsync rotate erneuert – dann den neuen Code eingeben.', 'key');
+  }
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+async function fetchFile(name) {
+  const url = RAW + '/' + encodeURIComponent(S.code.owner) + '/' + encodeURIComponent(S.code.gistId) + '/raw/'
+    + encodeURIComponent(name) + '?t=' + Date.now();
+  let res;
+  try {
+    res = await fetch(url);
+  } catch (e) {
+    throw new LoadError('GitHub ist gerade nicht erreichbar. Internetverbindung prüfen und neu laden.');
+  }
+  if (res.status === 404) throw new LoadError('Keine Daten gefunden. Stimmt der Code, und hat der Teilen-Account schon hochgeladen?', 404);
+  if (res.status === 429 || res.status === 403) throw new LoadError('GitHub bremst gerade (zu viele Abrufe). In ein paar Minuten neu laden.', res.status);
+  if (!res.ok) throw new LoadError('GitHub antwortet mit Fehler ' + res.status + '.', res.status);
+  return decrypt(name, await res.text());
+}
+
+/** Höchstens n Abrufe gleichzeitig. */
+async function pool(items, n, fn) {
+  let next = 0;
+  const workers = Array.from({ length: Math.min(n, items.length) }, async () => {
+    while (next < items.length) {
+      const i = next++;
+      await fn(items[i], i);
+    }
+  });
+  await Promise.all(workers);
+}
+
+// ============================================================ Laden
+
+function cacheKey() { return 'mm-cache:' + S.code.gistId; }
+function loadCache() {
+  try {
+    const c = JSON.parse(store.get(cacheKey()) || 'null');
+    if (c && c.months && c.team) S.cache = c;
+  } catch (e) { S.cache = { months: {}, team: {} }; }
+}
+function saveCache() {
+  if (!store.set(cacheKey(), JSON.stringify(S.cache))) {
+    // zu groß für den Browser-Speicher: dann eben ohne Zwischenspeicher
+    store.del(cacheKey());
+  }
+}
+
+async function refresh(first) {
+  if (S.loading) return;
+  S.loading = true;
+  const prog = document.getElementById('progress');
+  const err = document.getElementById('load-error');
+  document.getElementById('view').style.opacity = S.data ? '0.6' : '1';
+  try {
+    if (first) { prog.hidden = false; prog.textContent = 'Lade Übersicht …'; }
+    const idx = await fetchFile('it-index.bin');
+    S.idx = idx;
+    const months = idx.months || {};
+    const mana = idx.mana || {};
+    const monthKeys = [...new Set([...Object.keys(months), ...Object.keys(mana)])].sort();
+    const parts = (idx.team && idx.team.p) || {};
+    const jobs = [];
+    for (const m of monthKeys) {
+      const sig = (months[m] || 0) + '/' + (mana[m] || 0);
+      if (!S.cache.months[m] || S.cache.months[m].sig !== sig) jobs.push({ type: 'm', key: m, sig, file: 'it-' + m + '.bin' });
+    }
+    for (const [k, hash] of Object.entries(parts)) {
+      if (!S.cache.team[k] || S.cache.team[k].h !== hash) jobs.push({ type: 't', key: k, sig: hash, file: 'it-team-' + k + '.bin' });
+    }
+    for (const m of Object.keys(S.cache.months)) if (!monthKeys.includes(m)) delete S.cache.months[m];
+    for (const k of Object.keys(S.cache.team)) if (!(k in parts)) delete S.cache.team[k];
+    let done = 0;
+    if (jobs.length && first) prog.textContent = 'Lade Daten … 0 von ' + jobs.length;
+    await pool(jobs, 4, async (j) => {
+      const o = await fetchFile(j.file);
+      if (j.type === 'm') S.cache.months[j.key] = { sig: j.sig, e: o.e || [], m: o.m || [] };
+      else S.cache.team[j.key] = { h: j.sig, l: o.l || [], d: o.d || [], f: o.f || [] };
+      done++;
+      if (first) prog.textContent = 'Lade Daten … ' + done + ' von ' + jobs.length;
+    });
+    if (jobs.length) saveCache();
+    S.data = buildData();
+    S.loadedAt = Date.now();
+    err.hidden = true;
+    render();
+  } catch (e) {
+    err.hidden = false;
+    err.textContent = e.message || String(e);
+    if (e.status === 'key' || e.status === 404) document.getElementById('state-dot').className = 'dot off';
+  } finally {
+    S.loading = false;
+    prog.hidden = true;
+    document.getElementById('view').style.opacity = '1';
+    updateMeta();
+  }
+}
+
+function buildData() {
+  const income = [];
+  const mana = [];
+  for (const m of Object.values(S.cache.months)) {
+    for (const x of m.e) income.push({ t: +x[0], a: +x[1], m: Math.max(1, +x[2] || 0) });
+    for (const t of m.m) mana.push(+t);
+  }
+  income.sort((a, b) => a.t - b.t);
+  mana.sort((a, b) => a - b);
+  const loot = [];
+  const deaths = [];
+  const flips = [];
+  for (const p of Object.values(S.cache.team)) {
+    for (const x of p.l) if (KIND[x[1]]) loot.push({ t: +x[0], k: x[1], p: String(x[2]), i: String(x[3]), d: String(x[4] || ''), a: +x[5], c: String(x[6] || '') });
+    for (const x of p.d) deaths.push({ t: +x[0], p: String(x[1]), c: String(x[2] || '') });
+    for (const x of p.f) flips.push({ t: +x[0], p: String(x[1]), w: +x[2] === 1, a: +x[3], c: x[4] === 'c' ? 'c' : '$' });
+  }
+  loot.sort((a, b) => a.t - b.t);
+  deaths.sort((a, b) => a.t - b.t);
+  flips.sort((a, b) => a.t - b.t);
+  const names = new Map();
+  const add = (n) => { if (n && !names.has(n.toLowerCase())) names.set(n.toLowerCase(), n); };
+  for (const x of loot) add(x.p);
+  for (const x of deaths) add(x.p);
+  for (const x of flips) add(x.p);
+  if (S.idx.team && S.idx.team.acct) add(S.idx.team.acct);
+  return { income, mana, loot, deaths, flips, players: [...names.values()].sort((a, b) => a.localeCompare(b, 'de', { sensitivity: 'base' })) };
+}
+
+function updateMeta() {
+  if (!S.code) return;
+  document.getElementById('meta').hidden = false;
+  document.getElementById('island').textContent = 'Insel ' + (S.idx && S.idx.island ? S.idx.island : S.code.island);
+  const up = S.idx && S.idx.updated ? S.idx.updated : 0;
+  const age = up ? Date.now() - up : Infinity;
+  const dot = document.getElementById('state-dot');
+  if (!document.getElementById('load-error').hidden && !S.data) dot.className = 'dot off';
+  else dot.className = age > 30 * 60000 ? 'dot stale' : 'dot';
+  document.getElementById('updated').textContent = up ? 'Stand ' + ago(age) : '';
+  const acct = S.idx && S.idx.team && S.idx.team.acct;
+  document.getElementById('foot-note').textContent = acct ? 'Daten vom Teilen-Account ' + acct + '.' : '';
+}
+
+// ============================================================ Auswertungen
+
+function incomeWindow(from, to) {
+  let a = 0, m = 0, n = 0, max = 0, min = Infinity;
+  for (const e of S.data.income) {
+    if (e.t <= from || e.t > to) continue;
+    a += e.a; m += e.m; n++;
+    max = Math.max(max, e.a); min = Math.min(min, e.a);
+  }
+  return { sum: a, minutes: m, n, max, min: n ? min : 0, rate: m ? a * 60 / m : -1 };
+}
+function manaIn(from, to) { return S.data.mana.filter((t) => t > from && t <= to).length; }
+
+function teamStats(from) {
+  const m = new Map();
+  const get = (p) => {
+    const k = p.toLowerCase();
+    let x = m.get(k);
+    if (!x) {
+      x = { name: p, B: 0, L: 0, D: 0, G: 0, giveC: 0, A: 0, money: 0, cub: 0, deaths: 0, killers: new Map(),
+        lastLoot: null, lastLeg: null, lastDeath: null, bestSale: null, lastSeen: 0 };
+      m.set(k, x);
+    }
+    return x;
+  };
+  for (const p of S.data.players) get(p);
+  for (const e of S.data.loot) {
+    const x = get(e.p);
+    x.lastSeen = Math.max(x.lastSeen, e.t);
+    if (e.t < from) continue;
+    x[e.k]++;
+    x.lastLoot = e;
+    if (e.k === 'L') x.lastLeg = e;
+    if (e.k === 'G' && e.c === 'c') x.giveC += e.a;
+    if (e.k === 'A') {
+      if (e.c === '$') { x.money += e.a; if (!x.bestSale || e.a > x.bestSale.a) x.bestSale = e; }
+      else if (e.c === 'c') x.cub += e.a;
+    }
+  }
+  for (const d of S.data.deaths) {
+    const x = get(d.p);
+    x.lastSeen = Math.max(x.lastSeen, d.t);
+    if (d.t < from) continue;
+    x.deaths++;
+    x.killers.set(d.c, (x.killers.get(d.c) || 0) + 1);
+    x.lastDeath = d;
+  }
+  const out = [...m.values()];
+  for (const x of out) {
+    let top = null, n = 0;
+    for (const [k, v] of x.killers) if (v > n) { top = k; n = v; }
+    x.topKiller = top; x.topKillerN = n;
+  }
+  out.sort((a, b) => (b.B + b.L + b.D + b.A + b.G) - (a.B + a.L + a.D + a.A + a.G) || a.name.localeCompare(b.name));
+  return out;
+}
+
+/** Wie in der Mod: Niederlage = Einsatz verloren; Sieg = Topf (2 × Einsatz) ausgezahlt → Gewinn = halbe Auszahlung. */
+function flipStake(f) { return f.w ? f.a / 2 : f.a; }
+function flipNet(f) { return f.w ? f.a / 2 : -f.a; }
+function flipStats(cur, from) {
+  const m = new Map();
+  const get = (p) => {
+    const k = p.toLowerCase();
+    if (!m.has(k)) m.set(k, { name: p, flips: 0, wins: 0, losses: 0, wagered: 0, net: 0, bestWin: 0, worstLoss: 0, streak: 0, bestStreak: 0, last: 0 });
+    return m.get(k);
+  };
+  for (const f of S.data.flips) {
+    if (f.c !== cur || f.t < from) continue;
+    const x = get(f.p);
+    x.flips++; x.wagered += flipStake(f); x.net += flipNet(f); x.last = Math.max(x.last, f.t);
+    if (f.w) { x.wins++; x.bestWin = Math.max(x.bestWin, f.a); x.streak = x.streak > 0 ? x.streak + 1 : 1; x.bestStreak = Math.max(x.bestStreak, x.streak); }
+    else { x.losses++; x.worstLoss = Math.max(x.worstLoss, f.a); x.streak = x.streak < 0 ? x.streak - 1 : -1; }
+  }
+  return [...m.values()].sort((a, b) => b.net - a.net || b.flips - a.flips);
+}
+
+// ============================================================ Tooltip
+
+const tip = document.getElementById('tip');
+function showTip(ev, value, lines) {
+  tip.replaceChildren(h('b', null, value), ...lines.map((l) => h('div', null, l)));
+  tip.style.display = 'block';
+  const r = tip.getBoundingClientRect();
+  let x = ev.clientX + 14, y = ev.clientY + 14;
+  if (x + r.width > innerWidth - 8) x = ev.clientX - r.width - 14;
+  if (y + r.height > innerHeight - 8) y = ev.clientY - r.height - 14;
+  tip.style.left = Math.max(8, x) + 'px';
+  tip.style.top = Math.max(8, y) + 'px';
+}
+function hideTip() { tip.style.display = 'none'; }
+
+// ============================================================ Diagramme
+
+function niceMax(v) {
+  if (v <= 0) return 1;
+  const p = Math.pow(10, Math.floor(Math.log10(v)));
+  for (const f of [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (f * p >= v) return f * p;
+  return 10 * p;
+}
+
+/**
+ * Säulendiagramm: buckets = [{label, tip, value, n, mana}], eine Farbe; Mana-leer als rote Punkte über der Säule.
+ */
+function columnChart(buckets, opts) {
+  const box = h('div', { class: 'chart' });
+  const W = Math.max(280, opts.width || 640);
+  const H = opts.height || 220;
+  const L = 52, R = 8, T = 14, B = 24;
+  const pw = W - L - R, ph = H - T - B;
+  const max = niceMax(Math.max(...buckets.map((b) => b.value), 0));
+  const svg = s('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': opts.label });
+  for (let i = 0; i <= 4; i++) {
+    const v = max * i / 4;
+    const y = T + ph - ph * i / 4;
+    svg.append(s('line', { class: i ? 'gridline' : 'baseline', x1: L, x2: W - R, y1: y, y2: y }));
+    if (!opts.noAxis || i === 4) svg.append(s('text', { class: 'axis', x: L - 8, y: y + 4, 'text-anchor': 'end' }, i ? axisNum(v) : '0'));
+  }
+  const n = buckets.length;
+  const slot = pw / n;
+  const bw = Math.max(2, Math.min(24, slot - 2));
+  const every = Math.max(1, Math.ceil(n / Math.max(1, pw / 64)));
+  buckets.forEach((b, i) => {
+    const x = L + i * slot + (slot - bw) / 2;
+    const hgt = max ? ph * b.value / max : 0;
+    const y = T + ph - hgt;
+    if (hgt > 0.5) {
+      const r = Math.min(4, bw / 2, hgt);
+      svg.append(s('path', {
+        d: `M${x},${T + ph} V${y + r} Q${x},${y} ${x + r},${y} H${x + bw - r} Q${x + bw},${y} ${x + bw},${y + r} V${T + ph} Z`,
+        fill: opts.color, opacity: b.partial ? 0.5 : null,
+      }));
+    }
+    if (b.mana) {
+      svg.append(s('circle', { cx: x + bw / 2, cy: Math.max(T + 2, y - 8), r: 4, fill: 'var(--bad)', stroke: '#0b1024', 'stroke-width': 2 }));
+    }
+    if (!opts.noAxis && i % every === 0) {
+      svg.append(s('text', { class: 'axis', x: L + i * slot + slot / 2, y: H - 6, 'text-anchor': 'middle' }, b.label));
+    }
+    const hit = s('rect', { x: L + i * slot, y: T, width: slot, height: ph, fill: 'transparent', tabindex: opts.noAxis ? null : 0 });
+    const lines = [b.tip, b.n + (b.n === 1 ? ' Meldung' : ' Meldungen')];
+    if (b.mana) lines.push(b.mana + '× Minion ohne Mana');
+    if (b.partial) lines.push('läuft noch');
+    hit.addEventListener('pointermove', (ev) => showTip(ev, money(b.value), lines));
+    hit.addEventListener('pointerleave', hideTip);
+    hit.addEventListener('focus', (ev) => { const r = hit.getBoundingClientRect(); showTip({ clientX: r.left + r.width / 2, clientY: r.top }, money(b.value), lines); });
+    hit.addEventListener('blur', hideTip);
+    svg.append(hit);
+  });
+  box.append(svg);
+  return box;
+}
+
+/** Linie der Coinflip-Bilanz Flip für Flip; über null grün, darunter rot hinterlegt; Fadenkreuz mit Tooltip. */
+function curveChart(flips, cur, width) {
+  const box = h('div', { class: 'chart' });
+  const W = Math.max(280, width), H = 200, L = 58, R = 10, T = 12, B = 22;
+  const pw = W - L - R, ph = H - T - B;
+  const cum = [0];
+  for (const f of flips) cum.push(cum[cum.length - 1] + flipNet(f));
+  let min = Math.min(...cum), max = Math.max(...cum);
+  if (max - min < 1e-9) { max += 1; min -= 1; }
+  const span = max - min;
+  const X = (i) => L + pw * i / Math.max(1, cum.length - 1);
+  const Y = (v) => T + ph * (max - v) / span;
+  const svg = s('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Bilanz Flip für Flip' });
+  const fmt = (v) => cur === 'c' ? cubitNum(v) : compact(v);
+  for (const v of [0, max, min]) {
+    const y = Y(v);
+    svg.append(s('line', { class: v === 0 ? 'baseline' : 'gridline', x1: L, x2: W - R, y1: y, y2: y }));
+    if (v !== 0 && Math.abs(y - Y(0)) < 14) continue;
+    svg.append(s('text', { class: 'axis', x: L - 8, y: y + 4, 'text-anchor': 'end' }, (v > 0 ? '+' : v < 0 ? '−' : '') + fmt(Math.abs(v))));
+  }
+  const zero = Y(0);
+  const path = cum.map((v, i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ');
+  const clipUp = 'cu' + Math.random().toString(36).slice(2);
+  const clipDn = 'cd' + Math.random().toString(36).slice(2);
+  svg.append(s('defs', null,
+    s('clipPath', { id: clipUp }, s('rect', { x: L, y: T, width: pw, height: Math.max(0, zero - T) })),
+    s('clipPath', { id: clipDn }, s('rect', { x: L, y: zero, width: pw, height: Math.max(0, T + ph - zero) }))));
+  const area = path + ` L${X(cum.length - 1)},${zero} L${X(0)},${zero} Z`;
+  svg.append(s('path', { d: area, fill: 'var(--good)', opacity: 0.14, 'clip-path': `url(#${clipUp})` }));
+  svg.append(s('path', { d: area, fill: 'var(--bad)', opacity: 0.14, 'clip-path': `url(#${clipDn})` }));
+  svg.append(s('path', { d: path, fill: 'none', stroke: 'var(--flip)', 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+  const lastI = cum.length - 1;
+  svg.append(s('circle', { cx: X(lastI), cy: Y(cum[lastI]), r: 4, fill: 'var(--flip)', stroke: '#121a36', 'stroke-width': 2 }));
+  const cross = s('line', { x1: 0, x2: 0, y1: T, y2: T + ph, stroke: 'var(--ink-3)', 'stroke-width': 1, visibility: 'hidden' });
+  const dot = s('circle', { r: 4, fill: 'var(--flip)', stroke: '#121a36', 'stroke-width': 2, visibility: 'hidden' });
+  svg.append(cross, dot);
+  const hit = s('rect', { x: L, y: T, width: pw, height: ph, fill: 'transparent' });
+  hit.addEventListener('pointermove', (ev) => {
+    const r = svg.getBoundingClientRect();
+    const px = (ev.clientX - r.left) * W / r.width;
+    const i = Math.max(1, Math.min(lastI, Math.round((px - L) / pw * lastI)));
+    const f = flips[i - 1];
+    cross.setAttribute('x1', X(i)); cross.setAttribute('x2', X(i)); cross.setAttribute('visibility', 'visible');
+    dot.setAttribute('cx', X(i)); dot.setAttribute('cy', Y(cum[i])); dot.setAttribute('visibility', 'visible');
+    const res = (f.w ? 'gewonnen ' : 'verloren ') + amount(f.a, cur);
+    showTip(ev, 'Bilanz ' + (cum[i] >= 0 ? '+' : '−') + amount(Math.abs(cum[i]), cur), ['Flip ' + i + ' · ' + dateShort(f.t) + ' ' + clock(f.t), res]);
+  });
+  hit.addEventListener('pointerleave', () => { hideTip(); cross.setAttribute('visibility', 'hidden'); dot.setAttribute('visibility', 'hidden'); });
+  svg.append(hit);
+  box.append(svg);
+  return box;
+}
+
+function incomeBuckets(range) {
+  const now = Date.now();
+  let start, size, count, label, tipFmt;
+  if (range === '24h') {
+    const h0 = new Date(now); h0.setMinutes(0, 0, 0);
+    size = HOUR; count = 24; start = h0.getTime() - 23 * HOUR;
+    label = (t) => pad(new Date(t).getHours()) + ' h';
+    tipFmt = (t) => dateShort(t) + ' ' + clock(t) + '–' + clock(t + size);
+  } else if (range === '7d') {
+    const h0 = new Date(now); h0.setMinutes(0, 0, 0); h0.setHours(Math.floor(h0.getHours() / 4) * 4);
+    size = 4 * HOUR; count = 42; start = h0.getTime() - 41 * size;
+    label = (t) => new Date(t).getHours() === 0 ? dateShort(t) : '';
+    tipFmt = (t) => dayName(t) + ', ' + clock(t) + '–' + clock(t + size);
+  } else {
+    const first = S.data.income.length ? S.data.income[0].t : now;
+    const days = range === '30d' ? 30 : Math.max(1, Math.ceil((dayStart(now) - dayStart(first)) / DAY) + 1);
+    size = days > 120 ? 7 * DAY : DAY;
+    count = Math.ceil(days * DAY / size);
+    start = dayStart(now) - (count - 1) * size;
+    label = (t) => dateShort(t);
+    tipFmt = (t) => size === DAY ? dayName(t) : 'Woche ab ' + dateShort(t);
+  }
+  const buckets = [];
+  for (let i = 0; i < count; i++) {
+    const from = start + i * size;
+    buckets.push({ from, to: from + size, label: label(from), tip: tipFmt(from), value: 0, n: 0, mana: 0, partial: from + size > now });
+  }
+  const idx = (t) => Math.floor((t - start) / size);
+  for (const e of S.data.income) { const i = idx(e.t); if (i >= 0 && i < count) { buckets[i].value += e.a; buckets[i].n++; } }
+  for (const t of S.data.mana) { const i = idx(t); if (i >= 0 && i < count) buckets[i].mana++; }
+  return buckets;
+}
+
+// ============================================================ Bausteine
+
+function chips(options, current, onPick, accent) {
+  const box = h('div', { class: 'chips', role: 'group', style: accent ? '--accent:' + accent : null });
+  for (const [v, l] of options) {
+    box.append(h('button', { class: 'chip', type: 'button', 'aria-pressed': String(v === current), onclick: () => onPick(v) }, l));
+  }
+  return box;
+}
+function head(name, small) {
+  const el = h('span', { class: 'head' + (small ? ' sm' : ''), 'aria-hidden': 'true' }, name.slice(0, 1).toUpperCase());
+  if (/^[A-Za-z0-9_]{3,16}$/.test(name)) {
+    const img = h('img', { class: 'head' + (small ? ' sm' : ''), alt: '', loading: 'lazy', referrerpolicy: 'no-referrer',
+      src: 'https://mc-heads.net/avatar/' + encodeURIComponent(name) + '/' + (small ? 18 : 28) });
+    img.addEventListener('error', () => img.replaceWith(el));
+    return img;
+  }
+  return el;
+}
+function tile(label, value, sub, sym, symColor) {
+  return h('div', { class: 'tile' },
+    h('div', { class: 'label' }, sym ? h('span', { class: 'sym', style: 'color:' + symColor, 'aria-hidden': 'true' }, sym) : null, label),
+    h('div', { class: 'value' }, value),
+    sub ? h('div', { class: 'sub' }, sub) : null);
+}
+function viewWidth(el) { return Math.min(1008, (el && el.clientWidth) || document.getElementById('view').clientWidth || 640); }
+
+// ============================================================ Seiten
+
+const TABS = [
+  ['overview', 'Übersicht', 'var(--mana)'],
+  ['income', 'Einnahmen', 'var(--gold)'],
+  ['team', 'Team', 'var(--team)'],
+  ['flips', 'Coinflips', 'var(--flip)'],
+  ['loot', 'Loot Log', 'var(--loot)'],
+];
+
+function renderTabs() {
+  const nav = document.getElementById('tabs');
+  nav.replaceChildren(...TABS.map(([id, label, color]) => h('button', {
+    class: 'tab', role: 'tab', type: 'button', 'aria-selected': String(S.tab === id), style: '--accent:' + color,
+    onclick: () => { S.tab = id; store.set('mm-tab', id); render(); },
+  }, label)));
+}
+
+function render() {
+  renderTabs();
+  if (!S.data) return;
+  const view = document.getElementById('view');
+  view.replaceChildren();
+  hideTip();
+  const fn = { overview: renderOverview, income: renderIncome, team: renderTeam, flips: renderFlips, loot: renderLoot }[S.tab] || renderOverview;
+  fn(view);
+}
+
+function renderOverview(view) {
+  const now = Date.now();
+  const last = incomeWindow(now - HOUR, now);
+  const prev = incomeWindow(now - 2 * HOUR, now - HOUR);
+  const today = incomeWindow(dayStart(now) - 1, now);
+  const d24 = incomeWindow(now - DAY, now);
+  const d7 = incomeWindow(now - 7 * DAY, now);
+  const lastT = S.data.income.length ? S.data.income[S.data.income.length - 1].t : 0;
+
+  const hero = h('section', { class: 'panel accent', style: '--accent:var(--gold)' });
+  const trend = last.rate > 0 && prev.rate > 0 ? Math.round((last.rate - prev.rate) / prev.rate * 100) : null;
+  hero.append(h('div', { class: 'hero' },
+    h('div', { class: 'what' }, 'Infinity Chests, letzte Stunde'),
+    h('div', { class: 'big' }, last.rate >= 0 ? [compact(last.rate), h('small', null, '$ / h')] : '–'),
+    h('div', { class: 'side' },
+      trend === null ? null : h('div', null, h('b', { class: trend >= 0 ? 'pos' : 'neg' }, (trend > 0 ? '▲ +' : trend < 0 ? '▼ −' : '± ') + Math.abs(trend) + ' %'), 'zur Stunde davor'),
+      h('div', null, h('b', null, money(today.sum)), 'heute'),
+      h('div', null, h('b', null, money(d24.sum)), 'letzte 24 h'),
+      h('div', null, h('b', null, money(d7.sum)), '7 Tage'))));
+  if (last.rate < 0) {
+    hero.append(h('div', { class: 'warn' }, lastT ? 'Seit ' + ago(now - lastT).replace('vor ', '') + ' keine Einnahmen-Meldung – ist der AFK-Account noch online?' : 'Noch keine Einnahmen erfasst.'));
+  }
+  const chartBox = h('div', { style: 'margin-top:14px' });
+  hero.append(chartBox);
+  view.append(hero);
+  chartBox.append(columnChart(incomeBuckets('24h'), { color: 'var(--gold)', height: 120, width: viewWidth(chartBox), label: 'Einnahmen der letzten 24 Stunden pro Stunde' }));
+  const manaToday = manaIn(dayStart(now) - 1, now);
+  chartBox.append(h('div', { class: 'legend-line' },
+    h('span', null, 'Pro Stunde, letzte 24 h'),
+    S.data.mana.length ? h('span', null, h('i', { style: 'background:var(--bad)' }), 'Minion ohne Mana' + (manaToday ? ' (heute ' + manaToday + '×)' : '')) : null));
+
+  // Team heute
+  const from = dayStart(now);
+  const st = teamStats(from);
+  const sum = (k) => st.reduce((a, x) => a + x[k], 0);
+  const flipsToday = flipStats('$', from);
+  const flipNetToday = flipsToday.reduce((a, x) => a + x.net, 0);
+  const flipN = flipsToday.reduce((a, x) => a + x.flips, 0);
+  const team = h('section', { class: 'panel accent', style: '--accent:var(--team)' }, h('h2', null, 'Team heute'));
+  team.append(h('div', { class: 'grid tiles' },
+    tile('Boss-Loot', String(sum('B')), null, '☠', 'var(--boss)'),
+    tile('Legendär', String(sum('L')), null, '♛', 'var(--legend)'),
+    tile('Seltene Drops', String(sum('D')), null, '★', 'var(--gold)'),
+    tile('Verkäufe', money(sum('money')), sum('A') + (sum('A') === 1 ? ' Verkauf' : ' Verkäufe'), '$', 'var(--loot)'),
+    tile('Tode', String(sum('deaths')), null, '✝', 'var(--ink-2)'),
+    tile('Coinflips', flipN ? signedEl(flipNetToday, '$') : '–', flipN ? flipN + ' Flips mit Geld' : 'noch keine', '◎', 'var(--flip)')));
+
+  // Neueste Funde
+  const recent = S.data.loot.slice(-8).reverse();
+  const grid = h('div', { class: 'grid two' });
+  const finds = h('section', { class: 'panel accent', style: '--accent:var(--loot)' }, h('h2', null, 'Neueste Funde'));
+  finds.append(recent.length ? lootList(recent, false) : h('p', { class: 'muted' }, 'Noch nichts erfasst.'));
+  const legs = S.data.loot.filter((e) => e.k === 'L').slice(-5).reverse();
+  const legBox = h('section', { class: 'panel accent', style: '--accent:var(--legend)' }, h('h2', null, 'Legendärer Loot'));
+  legBox.append(legs.length ? lootList(legs, false) : h('p', { class: 'muted' }, 'Noch kein legendärer Fund.'));
+  grid.append(finds, legBox);
+  view.append(team, grid);
+}
+
+function renderIncome(view) {
+  const now = Date.now();
+  const ranges = [['24h', '24 Stunden'], ['7d', '7 Tage'], ['30d', '30 Tage'], ['all', 'Alles']];
+  view.append(h('div', { class: 'row' }, chips(ranges, S.incRange, (v) => { S.incRange = v; render(); }, 'var(--gold)')));
+  const from = S.incRange === 'all' ? 0 : since(S.incRange);
+  const w = incomeWindow(from, now);
+  const mana = manaIn(from, now);
+  const panel = h('section', { class: 'panel accent', style: '--accent:var(--gold)' });
+  const title = { '24h': 'Pro Stunde', '7d': 'Pro 4 Stunden', '30d': 'Pro Tag', all: 'Gesamter Verlauf' }[S.incRange];
+  panel.append(h('h2', null, 'Einnahmen · ' + title));
+  const chartBox = h('div');
+  panel.append(chartBox);
+  view.append(panel);
+  const buckets = incomeBuckets(S.incRange);
+  chartBox.append(columnChart(buckets, { color: 'var(--gold)', height: 240, width: viewWidth(chartBox), label: 'Einnahmen ' + title }));
+  panel.append(h('div', { class: 'legend-line' },
+    S.data.mana.length ? h('span', null, h('i', { style: 'background:var(--bad)' }), 'Minion ohne Mana') : null,
+    h('button', { class: 'btn quiet small', type: 'button', onclick: () => { S.incTable = !S.incTable; render(); } }, S.incTable ? 'Tabelle ausblenden' : 'Als Tabelle')));
+  if (S.incTable) {
+    const t = h('table', { class: 'small' }, h('thead', null, h('tr', null, h('th', null, 'Zeitraum'), h('th', { class: 'r' }, 'Einnahmen'), h('th', { class: 'r' }, 'Meldungen'), h('th', { class: 'r' }, 'Mana leer'))));
+    const tb = h('tbody');
+    for (const b of buckets.slice().reverse()) {
+      if (!b.n && !b.mana) continue;
+      tb.append(h('tr', null, h('td', null, b.tip), h('td', { class: 'r num' }, money(b.value)), h('td', { class: 'r num' }, String(b.n)), h('td', { class: 'r num' }, b.mana ? String(b.mana) : '–')));
+    }
+    t.append(tb);
+    panel.append(h('div', { style: 'margin-top:10px;overflow-x:auto' }, t));
+  }
+  const stats = h('section', { class: 'panel' }, h('h2', null, 'Statistik'));
+  const hours = w.minutes / 60;
+  stats.append(h('div', { class: 'grid tiles' },
+    tile('Summe', money(w.sum)),
+    tile('Schnitt pro Stunde', w.rate >= 0 ? money(w.rate) : '–'),
+    tile('Meldungen', nf0.format(w.n), hours ? 'decken ' + nf(hours, hours < 10 ? 1 : 0) + ' h ab' : null),
+    tile('Schnitt pro Meldung', w.n ? money(w.sum / w.n) : '–'),
+    tile('Beste Meldung', w.n ? money(w.max) : '–'),
+    tile('Schwächste Meldung', w.n ? money(w.min) : '–'),
+    tile('Minion ohne Mana', String(mana), mana ? 'zuletzt ' + ago(now - S.data.mana[S.data.mana.length - 1]) : null, '●', 'var(--bad)')));
+  view.append(stats);
+}
+
+function renderTeam(view) {
+  view.append(h('div', { class: 'row' }, chips(RANGES, S.teamRange, (v) => { S.teamRange = v; render(); }, 'var(--team)')));
+  const st = teamStats(since(S.teamRange));
+  const panel = h('section', { class: 'panel accent', style: '--accent:var(--team)' });
+  const table = h('table', { class: 'cards' });
+  table.append(h('thead', null, h('tr', null,
+    h('th', null, 'Spieler'), h('th', { class: 'r' }, '☠ Boss'), h('th', { class: 'r' }, '♛ Legendär'), h('th', { class: 'r' }, '★ Drops'),
+    h('th', { class: 'r' }, '✦ Gewinne'), h('th', { class: 'r' }, '$ Verkäufe'), h('th', { class: 'r' }, '✝ Tode'))));
+  const tb = h('tbody');
+  const now = Date.now();
+  for (const x of st) {
+    const sel = S.teamSel && S.teamSel.toLowerCase() === x.name.toLowerCase();
+    const sales = x.A ? [x.money ? h('div', null, money(x.money)) : null, x.cub ? h('div', { class: 'small', style: 'color:var(--cubit)' }, '+' + cubits(x.cub)) : null, !x.money && !x.cub ? String(x.A) + '×' : null] : '–';
+    tb.append(h('tr', { class: 'click' + (sel ? ' sel' : ''), tabindex: 0,
+      onclick: () => { S.teamSel = sel ? null : x.name; render(); },
+      onkeydown: (ev) => { if (ev.key === 'Enter') { S.teamSel = sel ? null : x.name; render(); } } },
+      h('td', null, h('div', { class: 'who' }, head(x.name), h('div', null, h('b', null, x.name), h('div', { class: 'small muted' }, x.lastSeen ? 'zuletzt ' + ago(now - x.lastSeen) : 'noch nichts')))),
+      h('td', { class: 'r num', 'data-label': 'Boss' }, String(x.B)),
+      h('td', { class: 'r num' + (x.L ? ' legendary' : ''), 'data-label': 'Legendär' }, String(x.L)),
+      h('td', { class: 'r num', 'data-label': 'Drops' }, String(x.D)),
+      h('td', { class: 'r num', 'data-label': 'Gewinne' }, x.G ? x.G + (x.giveC ? ' (+' + cubitNum(x.giveC) + ' C)' : '') : '0'),
+      h('td', { class: 'r num', 'data-label': 'Verkäufe' }, sales),
+      h('td', { class: 'r num', 'data-label': 'Tode' }, x.deaths ? [String(x.deaths), x.topKiller ? h('div', { class: 'small muted' }, x.topKiller) : null] : '0')));
+    if (sel) tb.append(h('tr', null, h('td', { colspan: 7 }, teamDetails(x))));
+  }
+  table.append(tb);
+  panel.append(h('div', { style: 'overflow-x:auto' }, table));
+  view.append(panel);
+
+  // Rekorde
+  const best = (k) => st.filter((x) => x[k] > 0).sort((a, b) => b[k] - a[k])[0];
+  const drops = best('D'), boss = best('B'), leg = best('L'), dead = best('deaths');
+  const sale = st.filter((x) => x.bestSale).sort((a, b) => b.bestSale.a - a.bestSale.a)[0];
+  const killers = new Map();
+  for (const x of st) for (const [k, v] of x.killers) killers.set(k, (killers.get(k) || 0) + v);
+  let topK = null, topN = 0;
+  for (const [k, v] of killers) if (v > topN) { topK = k; topN = v; }
+  const rec = (t, accent, v, sub) => h('div', { class: 'record', style: '--accent:' + accent }, h('div', { class: 't' }, t), h('div', { class: 'v' }, v || '–'), sub ? h('div', { class: 's' }, sub) : null);
+  const total = (k) => st.reduce((a, x) => a + x[k], 0);
+  view.append(h('section', { class: 'panel' }, h('h2', null, 'Rekorde'), h('div', { class: 'records' },
+    rec('★ Meiste Drops', 'var(--gold)', drops && drops.name + ' · ' + drops.D, 'Team: ' + total('D')),
+    rec('☠ Meiste Bosse', 'var(--boss)', boss && boss.name + ' · ' + boss.B, 'Team: ' + total('B')),
+    rec('♛ Meiste Legendäre', 'var(--legend)', leg && leg.name + ' · ' + leg.L, leg && leg.lastLeg ? 'zuletzt ' + leg.lastLeg.i : null),
+    rec('$ Bester Verkauf', 'var(--loot)', sale && money(sale.bestSale.a), sale && sale.name + ' · ' + sale.bestSale.i),
+    rec('✝ Größte Gefahr', 'var(--ink-2)', topK && topK + ' · ' + topN + '×', dead && 'meiste Tode: ' + dead.name + ' (' + dead.deaths + ')'))));
+}
+
+function teamDetails(x) {
+  const now = Date.now();
+  const from = since(S.teamRange);
+  const mine = S.data.loot.filter((e) => e.p.toLowerCase() === x.name.toLowerCase() && e.t >= from).slice(-6).reverse();
+  return h('div', { style: 'padding:6px 2px 10px' },
+    h('div', { class: 'grid tiles' },
+      tile('Letzter Fund', x.lastLoot ? x.lastLoot.i : '–', x.lastLoot ? KIND[x.lastLoot.k].label + ' · ' + ago(now - x.lastLoot.t) : null),
+      tile('Letzter Tod', x.lastDeath ? x.lastDeath.c : '–', x.lastDeath ? ago(now - x.lastDeath.t) : null),
+      tile('Häufigster Killer', x.topKiller ? x.topKiller : '–', x.topKiller ? x.topKillerN + '×' : null),
+      tile('Verkäufe', x.A ? money(x.money) : '–', x.cub ? '+' + cubits(x.cub) : null)),
+    mine.length ? h('div', { style: 'margin-top:10px' }, lootList(mine, false)) : null);
+}
+
+function renderFlips(view) {
+  view.append(h('div', { class: 'row' },
+    chips([['$', '$ Geld'], ['c', '◆ Cubits']], S.flipCur, (v) => { S.flipCur = v; S.flipSel = null; render(); }, 'var(--flip)'),
+    chips(RANGES, S.flipRange, (v) => { S.flipRange = v; render(); }, 'var(--flip)')));
+  const cur = S.flipCur;
+  const from = since(S.flipRange);
+  const st = flipStats(cur, from);
+  const panel = h('section', { class: 'panel accent', style: '--accent:var(--flip)' });
+  if (!st.length) {
+    panel.append(h('p', { class: 'muted' }, 'Keine Coinflips mit ' + (cur === 'c' ? 'Cubits' : 'Geld') + ' in diesem Zeitraum.'));
+    view.append(panel);
+    return;
+  }
+  const table = h('table', { class: 'cards' });
+  table.append(h('thead', null, h('tr', null, h('th', null, 'Spieler'), h('th', { class: 'r' }, 'Flips'), h('th', { class: 'r' }, 'Siege'),
+    h('th', { class: 'r' }, 'Niederlagen'), h('th', null, 'Quote'), h('th', { class: 'r' }, 'Einsatz'), h('th', { class: 'r' }, 'Bilanz'))));
+  const tb = h('tbody');
+  for (const x of st) {
+    const sel = S.flipSel && S.flipSel.toLowerCase() === x.name.toLowerCase();
+    const rate = x.flips ? x.wins / x.flips : 0;
+    const streak = x.streak >= 2 ? x.streak + ' Siege in Folge' : x.streak <= -2 ? (-x.streak) + ' Niederlagen in Folge' : ago(Date.now() - x.last);
+    tb.append(h('tr', { class: 'click' + (sel ? ' sel' : ''), tabindex: 0,
+      onclick: () => { S.flipSel = sel ? null : x.name; render(); },
+      onkeydown: (ev) => { if (ev.key === 'Enter') { S.flipSel = sel ? null : x.name; render(); } } },
+      h('td', null, h('div', { class: 'who' }, head(x.name), h('div', null, h('b', null, x.name), h('div', { class: 'small muted' }, streak)))),
+      h('td', { class: 'r num', 'data-label': 'Flips' }, String(x.flips)),
+      h('td', { class: 'r num pos', 'data-label': 'Siege' }, String(x.wins)),
+      h('td', { class: 'r num neg', 'data-label': 'Niederlagen' }, String(x.losses)),
+      h('td', { class: 'num', 'data-label': 'Quote', style: 'min-width:70px' }, Math.round(rate * 100) + ' %', h('div', { class: 'bar', 'aria-hidden': 'true' }, h('span', { style: 'width:' + (rate * 100).toFixed(1) + '%' }))),
+      h('td', { class: 'r num', 'data-label': 'Einsatz' }, amount(x.wagered, cur)),
+      h('td', { class: 'r num', 'data-label': 'Bilanz' }, signedEl(x.net, cur, 'b'))));
+    if (sel) {
+      const box = h('td', { colspan: 7 });
+      tb.append(h('tr', null, box));
+      const flips = S.data.flips.filter((f) => f.c === cur && f.t >= from && f.p.toLowerCase() === x.name.toLowerCase());
+      const wrap = h('div', { style: 'padding:6px 0 10px' });
+      box.append(wrap);
+      requestAnimationFrame(() => {
+        wrap.append(h('div', { class: 'small muted', style: 'margin-bottom:4px' }, 'Bilanz Flip für Flip'));
+        wrap.append(curveChart(flips, cur, viewWidth(wrap)));
+        wrap.append(h('div', { class: 'grid tiles', style: 'margin-top:10px' },
+          tile('Größter Gewinn', x.bestWin ? '+' + amount(x.bestWin, cur) : '–', 'ausgezahlt'),
+          tile('Größter Verlust', x.worstLoss ? '−' + amount(x.worstLoss, cur) : '–'),
+          tile('Beste Serie', x.bestStreak ? x.bestStreak + ' Siege' : '–')));
+        wrap.append(h('div', { style: 'margin-top:10px' }, flipList(flips.slice(-12).reverse(), cur)));
+      });
+    }
+  }
+  table.append(tb);
+  panel.append(h('div', { style: 'overflow-x:auto' }, table));
+  panel.append(h('p', { class: 'small muted', style: 'margin:10px 0 0' }, 'Bei einem Sieg wird der Topf ausgezahlt (2 × Einsatz), der Gewinn ist also die halbe Auszahlung – genau wie in der Mod.'));
+  view.append(panel);
+
+  const flips = st.reduce((a, x) => a + x.flips, 0);
+  const wins = st.reduce((a, x) => a + x.wins, 0);
+  const net = st.reduce((a, x) => a + x.net, 0);
+  const lucky = st.filter((x) => x.net > 0)[0];
+  const unlucky = st.filter((x) => x.net < 0).slice(-1)[0];
+  const big = st.filter((x) => x.bestWin > 0).sort((a, b) => b.bestWin - a.bestWin)[0];
+  const streak = st.filter((x) => x.bestStreak >= 2).sort((a, b) => b.bestStreak - a.bestStreak)[0];
+  const rec = (t, accent, v, sub) => h('div', { class: 'record', style: '--accent:' + accent }, h('div', { class: 't' }, t), h('div', { class: 'v' }, v || '–'), sub ? h('div', { class: 's' }, sub) : null);
+  view.append(h('section', { class: 'panel' }, h('h2', null, 'Team-Rekorde'), h('div', { class: 'records' },
+    rec('Team gesamt', cur === 'c' ? 'var(--cubit)' : 'var(--gold)', [flips + ' Flips · ' + Math.round(wins * 100 / flips) + ' %'], h('span', null, 'Bilanz ', signedEl(net, cur))),
+    rec('▲ Glückspilz', 'var(--good)', lucky && lucky.name, lucky && signedEl(lucky.net, cur)),
+    rec('▼ Pechvogel', 'var(--bad)', unlucky && unlucky.name, unlucky && signedEl(unlucky.net, cur)),
+    rec('★ Größter Gewinn', 'var(--gold)', big && '+' + amount(big.bestWin, cur), big && big.name + ', ausgezahlt'),
+    rec('» Längste Serie', 'var(--flip)', streak && streak.name, streak && streak.bestStreak + ' Siege in Folge'))));
+}
+
+function timeCell(t, dayKnown) {
+  const dated = !dayKnown && dayStart(t) !== dayStart(Date.now());
+  return h('span', { class: 'time' }, clock(t), dated ? h('small', null, dateShort(t)) : null);
+}
+
+function flipList(flips, cur) {
+  return h('ul', { class: 'list' }, flips.map((f) => h('li', null,
+    timeCell(f.t, false),
+    h('span', { class: 'main' }, h('b', null, (f.w ? '✔ gewonnen ' : '✖ verloren ') + amount(f.a, cur)), h('span', null, f.p)),
+    h('span', { class: 'amt' }, signedEl(flipNet(f), cur, 'b')))));
+}
+
+function lootList(entries, withDay) {
+  const ul = h('ul', { class: 'list' });
+  for (const e of entries) {
+    const k = KIND[e.k];
+    const sub = [e.p, e.d].filter(Boolean).join(' · ');
+    const amt = e.a >= 0 && (e.c === '$' || e.c === 'c') ? h('span', { style: e.c === 'c' ? 'color:var(--cubit)' : null }, '+' + amount(e.a, e.c)) : h('span', { class: 'small muted lbl' }, k.label);
+    ul.append(h('li', { class: e.k === 'L' ? 'leg' : null },
+      timeCell(e.t, withDay),
+      h('span', { class: 'main' }, h('b', null, h('span', { class: 'kind', style: 'color:' + k.color, title: k.label, 'aria-label': k.label }, k.sym), e.i), h('span', null, sub)),
+      h('span', { class: 'amt' }, amt)));
+  }
+  return ul;
+}
+
+function renderLoot(view) {
+  const kinds = [['all', 'Alle'], ['B', 'Boss-Loot'], ['L', 'Legendär'], ['D', 'Drops'], ['G', 'Verlosungen'], ['A', 'Auktionen']];
+  const select = h('select', { 'aria-label': 'Spieler', onchange: (ev) => { S.lootPlayer = ev.target.value; S.lootLimit = 150; render(); } },
+    h('option', { value: '' }, 'Alle Spieler'),
+    S.data.players.map((p) => h('option', { value: p, selected: p === S.lootPlayer ? true : null }, p)));
+  const search = h('input', { type: 'search', placeholder: 'Item suchen', value: S.lootQuery, 'aria-label': 'Item suchen' });
+  search.addEventListener('input', () => { S.lootQuery = search.value; S.lootLimit = 150; renderLootList(listBox); });
+  view.append(h('div', { class: 'row' }, chips(kinds, S.lootKind, (v) => { S.lootKind = v; S.lootLimit = 150; render(); }, 'var(--loot)'), select, search));
+  const listBox = h('section', { class: 'panel accent', style: '--accent:var(--loot)' });
+  view.append(listBox);
+  renderLootList(listBox);
+}
+
+function renderLootList(box) {
+  const q = S.lootQuery.trim().toLowerCase();
+  const all = S.data.loot.filter((e) => (S.lootKind === 'all' || e.k === S.lootKind)
+    && (!S.lootPlayer || e.p.toLowerCase() === S.lootPlayer.toLowerCase())
+    && (!q || e.i.toLowerCase().includes(q) || e.d.toLowerCase().includes(q))).reverse();
+  let money$ = 0, cub = 0;
+  for (const e of all) if (e.a > 0) { if (e.c === '$') money$ += e.a; else if (e.c === 'c') cub += e.a; }
+  box.replaceChildren(h('div', { class: 'small muted', style: 'margin-bottom:6px' },
+    nf0.format(all.length) + (all.length === 1 ? ' Eintrag' : ' Einträge') + (money$ ? ' · +' + money(money$) : '') + (cub ? ' · +' + cubits(cub) : '')));
+  if (!all.length) { box.append(h('p', { class: 'muted' }, 'Keine Einträge für diesen Filter.')); return; }
+  let day = null, chunk = [];
+  const flush = () => { if (chunk.length) { box.append(h('div', { class: 'day' }, dayName(chunk[0].t)), lootList(chunk, true)); chunk = []; } };
+  for (const e of all.slice(0, S.lootLimit)) {
+    const d = dayStart(e.t);
+    if (d !== day) { flush(); day = d; }
+    chunk.push(e);
+  }
+  flush();
+  if (all.length > S.lootLimit) {
+    box.append(h('button', { class: 'btn', type: 'button', style: 'margin-top:12px', onclick: () => { S.lootLimit += 300; renderLootList(box); } }, 'Ältere anzeigen'));
+  }
+}
+
+// ============================================================ Start
+
+function showGate(msg) {
+  document.getElementById('gate').hidden = false;
+  document.getElementById('app').hidden = true;
+  document.getElementById('meta').hidden = true;
+  const e = document.getElementById('gate-error');
+  e.hidden = !msg;
+  e.textContent = msg || '';
+}
+
+async function open(codeStr, remember) {
+  let code;
+  try { code = parseCode(codeStr); } catch (e) { showGate(e.message); return; }
+  S.codeStr = codeStr.trim();
+  S.code = code;
+  S.key = await crypto.subtle.importKey('raw', code.key, { name: 'AES-GCM' }, false, ['decrypt']);
+  if (remember) store.set('mm-code', S.codeStr);
+  document.getElementById('gate').hidden = true;
+  document.getElementById('app').hidden = false;
+  loadCache();
+  renderTabs();
+  updateMeta();
+  await refresh(true);
+}
+
+document.getElementById('gate-form').addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  open(document.getElementById('gate-code').value, document.getElementById('gate-remember').checked);
+});
+document.getElementById('reload').addEventListener('click', () => refresh(false));
+document.getElementById('forget').addEventListener('click', () => {
+  if (S.code) store.del('mm-cache:' + S.code.gistId);
+  store.del('mm-code');
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+  location.reload();
+});
+document.getElementById('copy-link').addEventListener('click', async (ev) => {
+  const url = location.origin + location.pathname + location.search + '#' + S.codeStr;
+  try { await navigator.clipboard.writeText(url); ev.target.textContent = 'Link kopiert – nur ans Team geben'; }
+  catch (e) { prompt('Link mit Code (nur ans Team geben):', url); }
+  setTimeout(() => { ev.target.textContent = 'Link mit Code kopieren'; }, 4000);
+});
+// Nur bei geänderter Breite neu zeichnen: Die Handy-Tastatur ändert nur die Höhe und soll das Suchfeld nicht zurücksetzen.
+let resizeTimer = 0;
+let lastWidth = innerWidth;
+addEventListener('resize', () => {
+  if (innerWidth === lastWidth) return;
+  lastWidth = innerWidth;
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(render, 200);
+});
+setInterval(() => { if (S.code && !document.hidden && Date.now() - S.loadedAt > 60000) refresh(false); }, 15000);
+setInterval(updateMeta, 20000);
+
+(function start() {
+  if (!window.crypto || !crypto.subtle) {
+    showGate('Diese Seite braucht eine sichere Verbindung (https). Bitte über die https-Adresse öffnen.');
+    return;
+  }
+  const fromHash = decodeURIComponent(location.hash.slice(1));
+  const code = fromHash.startsWith('IT2.') ? fromHash : store.get('mm-code');
+  if (code) open(code, false);
+  else showGate();
+})();
+</script>
+</body>
+</html>
