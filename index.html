@@ -117,8 +117,11 @@ a { color: var(--mana); }
 
 /* Held: Einnahmen pro Stunde */
 .hero { display: grid; grid-template-columns: auto 1fr; gap: 6px 22px; align-items: end; }
-.hero .big { font: 700 clamp(40px, 9vw, 68px)/0.95 var(--pixel); color: var(--gold); text-shadow: 0 0 22px rgba(255, 200, 58, 0.25); }
-.hero .big small { font-size: 0.42em; color: var(--ink-2); text-shadow: none; margin-left: 4px; }
+.hero .big {
+  font: 700 clamp(44px, 9vw, 70px)/1 var(--text); letter-spacing: -0.01em; font-variant-numeric: tabular-nums;
+  color: var(--gold); text-shadow: 0 0 22px rgba(255, 200, 58, 0.22);
+}
+.hero .big small { font-size: 0.36em; font-weight: 400; letter-spacing: 0; color: var(--ink-2); text-shadow: none; margin-left: 6px; }
 .hero .what { color: var(--ink-2); grid-column: 1 / -1; order: -1; }
 .hero .side { display: flex; gap: 18px; flex-wrap: wrap; padding-bottom: 6px; }
 .hero .side div { color: var(--ink-2); font-size: 14px; }
